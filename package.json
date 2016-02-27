@@ -1,0 +1,19 @@
+{
+  "name": "vk",
+  "version": "1.0.0",
+  "description": "0.0.1",
+  "main": "vk.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ishcherbakov/vk.git"
+  },
+  "author": "Игорь Щербаков",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ishcherbakov/vk/issues"
+  },
+  "homepage": "https://github.com/ishcherbakov/vk#readme"
+}
