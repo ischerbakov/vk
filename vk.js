@@ -67,15 +67,15 @@ proto.get = function(params, listener, filter) {
     copy({ domain: self.domainLocal(params.domain) }, result)
     listener(result)
   }
-  function error(text, e) {
+  function err(text, e) {
     call({ error: { text: text, instance: e } })
   }
   copy({ vesion: '5.45' }, params)
   var req = this.request(params, function(res) {
     if (res.error || !res.response)
-      return error('VK error')
+      return err('VK error')
     if (!res.response.items)
-      return error('no items')
+      return err('no items')
     
     filter = filter || (item => item)
     defalt = item => filter(merge(item, {
@@ -88,7 +88,7 @@ proto.get = function(params, listener, filter) {
     call({ items: items })
   })
   for (var error in ['http-error', 'parse-error'])
-    req.on(error, e => error(error, e))
+    req.on(error, e => err(error, e))
   
   return req
 }
