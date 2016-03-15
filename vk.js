@@ -1,9 +1,3 @@
-var vk = new (require('vksdk'))({
-  appId: 1,
-  https: true,
-  version: '5.45',
-})
-
 function copy(from, to) {
   for (var i in from)
     to[i] = from[i]
@@ -48,21 +42,9 @@ proto.domainLocal = function(domain) {
   return map(domain || this.domain)
 }
 
-proto.request = function(params, listener) {
-  if ("undefined" === listener) {
-    listener = domain
-    domain = false
-  }
-  
-  params = merge(this.params, params)
-  params.domain = this.domainLocal(params.domain)
-  
-  vk.request('wall.get', params, listener)
-  return vk
-}
-
 proto.get = function(params, listener, filter) {
   self = this
+  
   function call(result) {
     copy({ domain: self.domainLocal(params.domain) }, result)
     listener(result)
@@ -70,8 +52,19 @@ proto.get = function(params, listener, filter) {
   function err(text, e) {
     call({ error: { text: text, instance: e } })
   }
+  
   copy({ vesion: '5.45' }, params)
-  var req = this.request(params, function(res) {
+  params = merge(this.params, params)
+  params.domain = this.domainLocal(params.domain)
+  
+  var vk = new (require('vksdk'))({
+    appId: 1,
+    https: true,
+    version: '5.45',
+  })
+  for (var error in ['http-error', 'parse-error'])
+    vk.on(error, e => err(error, e))
+  vk.request('wall.get', params, function(res) {
     if (res.error || !res.response)
       return err('VK error')
     if (!res.response.items)
@@ -87,9 +80,7 @@ proto.get = function(params, listener, filter) {
       items.push(defalt(res.response.items[i]))
     call({ items: items })
   })
-  for (var error in ['http-error', 'parse-error'])
-    req.on(error, e => err(error, e))
   
-  return req
+  return vk
 }
 
