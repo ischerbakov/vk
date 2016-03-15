@@ -14,5 +14,8 @@
   "bugs": {
     "url": "https://github.com/ischerbakov/vk/issues"
   },
-  "homepage": "https://github.com/ischerbakov/vk#readme"
+  "homepage": "https://github.com/ischerbakov/vk#readme",
+  "dependencies": {
+    "vksdk": "5.3.1"
+  }
 }
