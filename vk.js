@@ -1,3 +1,5 @@
+'use strict'
+
 function copy(from, to) {
   for (var i in from)
     to[i] = from[i]
@@ -42,44 +44,50 @@ proto.domainLocal = function(domain) {
   return map(domain || this.domain)
 }
 
+var VkSdk = require('vksdk')
+
+proto.request = function(method, params, listener) {
+  params = merge(this.params, params)
+  params.domain = this.domainLocal(params.domain)
+  let vk = new VkSdk({
+    appId: 1, // no matter
+    version: '5.45',
+  })
+  vk.request(method, params, listener)
+  return vk
+}
+
 proto.get = function(params, listener, filter) {
-  self = this
+  let self = this
+  
+  copy({ vesion: '5.45' }, params)
   
   function call(result) {
     copy({ domain: self.domainLocal(params.domain) }, result)
     listener(result)
   }
   function err(text, e) {
+    console.error(text, e)
     call({ error: { text: text, instance: e } })
   }
   
-  copy({ vesion: '5.45' }, params)
-  params = merge(this.params, params)
-  params.domain = this.domainLocal(params.domain)
-  
-  var vk = new (require('vksdk'))({
-    appId: 1,
-    https: true,
-    version: '5.45',
-  })
-  for (var error in ['http-error', 'parse-error'])
-    vk.on(error, e => err(error, e))
-  vk.request('wall.get', params, function(res) {
+  let vk = this.request('wall.get', params, function(res) {
     if (res.error || !res.response)
       return err('VK error')
     if (!res.response.items)
       return err('no items')
     
     filter = filter || (item => item)
-    defalt = item => filter(merge(item, {
-      date: date(item.date)
-    }))
     
-    var items = []
-    for (var i in res.response.items)
-      items.push(defalt(res.response.items[i]))
+    let items = []
+    for (let i in res.response.items) {
+      let item = res.response.items[i]
+      items.push(filter(merge(item, { date: date(item.date) })))
+    }
     call({ items: items })
   })
+  for (let error in ['http-error', 'parse-error'])
+    vk.on(error, e => err(error, e))
   
   return vk
 }
